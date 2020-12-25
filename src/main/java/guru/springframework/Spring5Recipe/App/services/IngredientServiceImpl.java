@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -84,7 +85,7 @@ public class IngredientServiceImpl implements IngredientService {
                 //add new Ingredient
                 Ingredient ingredient = ingredientCommandToIngredient.convert(command);
                 ingredient.setRecipe(recipe);
-                ingredient.setId(Long.valueOf(recipe.getIngredients().size()+1)); //Added that so we get normal ingredient ID
+                //ingredient.setId(Long.valueOf(recipe.getIngredients().size()+1)); //Added that so we get normal ingredient ID todo: add error handling
                 recipe.addIngredient(ingredient);
             }
 
@@ -110,4 +111,33 @@ public class IngredientServiceImpl implements IngredientService {
 
         }
 
+    @Override
+    public void deleteById(Long recipeId, Long idToDelete) {
+
+        log.debug("Deleting ingredient: " + recipeId + ":" + idToDelete);
+
+        Optional<Recipe> recipeOptional = recipeRepository.findById(recipeId);
+
+        if(recipeOptional.isPresent()){
+            Recipe recipe = recipeOptional.get();
+            log.debug("found recipe");
+
+            Optional<Ingredient> ingredientOptional = recipe
+                    .getIngredients()
+                    .stream()
+                    .filter(ingredient -> ingredient.getId().equals(idToDelete))
+                    .findFirst();
+
+            if(ingredientOptional.isPresent()){
+                log.debug("found Ingredient");
+                //Ingredient ingredientToDelete = ingredientOptional.get();
+                //ingredientToDelete.setRecipe(null);
+                ingredientOptional.get().setRecipe(null);
+                recipe.getIngredients().remove(ingredientOptional.get());
+                recipeRepository.save(recipe);
+            }
+        } else {
+            log.debug("Recipe Id Not found. Id:" + recipeId);
+        }
     }
+}
