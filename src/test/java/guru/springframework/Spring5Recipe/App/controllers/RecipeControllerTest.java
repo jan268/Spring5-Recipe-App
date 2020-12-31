@@ -2,6 +2,7 @@ package guru.springframework.Spring5Recipe.App.controllers;
 
 import guru.springframework.Spring5Recipe.App.commands.RecipeCommand;
 import guru.springframework.Spring5Recipe.App.domain.Recipe;
+import guru.springframework.Spring5Recipe.App.exceptions.NotFoundException;
 import guru.springframework.Spring5Recipe.App.services.RecipeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,5 +99,14 @@ class RecipeControllerTest {
                 .andExpect(view().name("redirect:/"));
 
         verify(recipeService, times(1)).deleteById(anyLong());
+    }
+
+    @Test
+    public void testGetRecipeNotFound() throws Exception{
+        when(recipeService.findById(anyLong())).thenThrow(NotFoundException.class);
+
+        mockMvc.perform(get("/recipe/15/show"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("/recipe/404error"));
     }
 }
